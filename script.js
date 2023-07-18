@@ -1,51 +1,47 @@
-const inputs = document.querySelectorAll('.controls input');
-const player = document.querySelector(".player");
-const video = player.querySelector(".viewer");
-const progress = player.querySelector(".progress");
-const progressBar = player.querySelector(".progress__filled");
-const toggle = player.querySelector(".toggle");
-const skipButtons = player.querySelectorAll("[data-skip]");
-const ranges = player.querySelectorAll(".player__slider");
 
-    function handleUpdate() {
-      const suffix = this.dataset.sizing || '';
-      document.documentElement.style.setProperty(`--${this.name}`, this.value + suffix);
+let dragindex = 0;
+let dropindex = 0;
+let clone = "";
+
+const images = document.querySelectorAll(".image");
+
+function drag(e) {
+  e.dataTransfer.setData("text", e.target.id);
+}
+
+function allowDrop(e) {
+  e.preventDefault();
+}
+
+function drop(e) {
+  clone = e.target.cloneNode(true);
+  let data = e.dataTransfer.getData("text");
+  let nodelist = document.getElementById("parent").childNodes;
+  console.log(data, e.target.id);
+  for (let i = 0; i < nodelist.length; i++) {
+    if (nodelist[i].id == data) {
+      dragindex = i;
     }
-toggle.addEventListener("click", togglePlay);
-
-    inputs.forEach(input => input.addEventListener('change', handleUpdate));
-    inputs.forEach(input => input.addEventListener('mousemove', handleUpdate));
-video.addEventListener("timeupdate", handlerProgress);
-
-for (let skip of skipButtons) {
-  skip.addEventListener("click", forwardOrBackward);
-}
-
-for (let range of ranges) {
-  range.addEventListener("change", handleRangeUpdate);
-}
-
-function togglePlay() {
-  if (video.paused) {
-    video.play();
-    toggle.innerText = "❚ ❚";
-  } else {
-    video.pause();
-    toggle.innerText = "►";
   }
+
+  dragdrop(clone);
+
+  document
+    .getElementById("parent")
+    .replaceChild(document.getElementById(data), e.target);
+
+  document
+    .getElementById("parent")
+    .insertBefore(
+      clone,
+      document.getElementById("parent").childNodes[dragindex]
+    );
 }
 
-function handlerProgress() {
-  const currentProgress = (video.currentTime / video.duration) * 100;
-  progressBar.style.flexBasis = `${currentProgress}%`;
-}
+const dragdrop = (image) => {
+  image.ondragstart = drag;
+  image.ondragover = allowDrop;
+  image.ondrop = drop;
+};
 
-function forwardOrBackward(event) {
-  let element = event.target;
-  video.currentTime += parseFloat(element.attributes["data-skip"].value);
-}
-
-function handleRangeUpdate(event) {
-  let element = event.target;
-  video[element.name] = element.value;
-}
+images.forEach(dragdrop);
